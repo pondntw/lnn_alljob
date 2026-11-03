@@ -60,7 +60,7 @@ exports.lnn_alljob:GetRank(identifier, 'lumber')           -- อันดับ
 ตัวรับเป็น `AddEventHandler` (server-local) ห้ามเปลี่ยนเป็น `RegisterNetEvent` — client จะปั๊มแต้มตัวเองได้
 
 ## เทส (นอกเกม)
-`server/board.lua` เป็น pure Lua ไม่มี native → รันด้วย Lua 5.4 ธรรมดาได้เลย
+`server/board.lua` เป็น pure Lua ไม่มี native → รันด้วย Lua 5.4 ธรรมดาได้เลย (Windows ตัวติดตั้งทั่วไปตั้งชื่อเป็น `lua54` → ใช้ `lua54` แทน `lua`)
 ```
 lua tests/board_test.lua          # เคสเฉพาะ + สุ่มเทียบตัวอ้างอิงที่ sort ใหม่ทุกครั้ง (exit 1 ถ้าพลาด)
 lua tests/board_bench.lua 50000   # วัดความเร็ว บวกแต้ม / หาอันดับ / กรณีแย่สุด
