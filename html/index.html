@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>LNN Ranking</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="hud.css">
+</head>
+<body>
+    <!-- ⚠️ ui_page ถูกวาดทับจอตลอดเวลาที่ resource รัน → ค่าเริ่มต้นต้อง "ซ่อน" ทั้งใน CSS และ inline -->
+    <div id="app" style="display: none;">
+        <div class="backdrop"></div>
+
+        <section class="panel">
+            <div class="scan"></div>
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+
+            <header class="head">
+                <div class="brand">
+                    <div class="logo"><span>LNN</span></div>
+                    <div>
+                        <h1 class="glitch" data-text="RANKING // ALL JOB">RANKING // ALL JOB</h1>
+                        <p class="sub">NEURAL LEADERBOARD · REALTIME FEED</p>
+                    </div>
+                </div>
+                <div class="status">
+                    <span class="live"><i></i>LIVE</span>
+                    <span class="clock" id="clock">--:--:--</span>
+                    <button class="x" id="close" title="ปิด (ESC)">✕</button>
+                </div>
+            </header>
+
+            <div class="body">
+                <nav class="tabs" id="tabs"></nav>
+
+                <main class="board">
+                    <div class="board-head">
+                        <div>
+                            <p class="eyebrow">SECTOR</p>
+                            <h2 id="boardTitle">—</h2>
+                        </div>
+                        <div class="meta">
+                            <span><b id="count">0</b> OPERATIVES</span>
+                            <span class="sync" id="sync">SYNC</span>
+                        </div>
+                    </div>
+
+                    <div class="podium" id="podium"></div>
+                    <ol class="list" id="list"></ol>
+                    <div class="empty" id="empty" style="display: none;">
+                        <div class="ring"></div>
+                        <p>NO SIGNAL — ยังไม่มีใครติดอันดับ</p>
+                    </div>
+                    <div class="loading" id="loading" style="display: none;"><span></span><span></span><span></span></div>
+                </main>
+            </div>
+
+            <footer class="me">
+                <div class="me-tag">YOU</div>
+                <div class="me-cell">
+                    <p>RANK</p>
+                    <strong id="meRank">—</strong>
+                </div>
+                <div class="me-cell">
+                    <p>SCORE</p>
+                    <strong id="meScore">0</strong>
+                </div>
+                <div class="me-cell wide">
+                    <p>PERCENTILE</p>
+                    <div class="meter"><i id="meBar"></i></div>
+                    <span id="mePct">—</span>
+                </div>
+                <div class="hint"><kbd>↑</kbd><kbd>↓</kbd> เปลี่ยนกระดาน <kbd>ESC</kbd> ปิด</div>
+            </footer>
+        </section>
+    </div>
+
+    <!-- HUD ตอนฟาร์ม — ไม่ยึดโฟกัส · ค่าเริ่มต้นซ่อน -->
+    <div id="hud" class="hud" style="display: none;">
+        <div class="hud-ring">
+            <svg viewBox="0 0 100 100">
+                <defs>
+                    <linearGradient id="hudGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+                        <stop offset="0%" stop-color="#0871E0" class="g1" />
+                        <stop offset="50%" stop-color="#72EAFF" class="g2" />
+                        <stop offset="100%" stop-color="#12D6FF" class="g3" />
+                    </linearGradient>
+                </defs>
+                <circle class="track" cx="50" cy="50" r="43" />
+                <circle class="ticks" cx="50" cy="50" r="49" />
+                <circle class="fill" id="hudFill" cx="50" cy="50" r="43" pathLength="100" />
+            </svg>
+            <div class="hud-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9L12 3Z" /><path d="M3 7.5 12 12l9-4.5M12 12v9" /></svg>
+            </div>
+            <div class="hud-time" id="hudTime"></div>
+        </div>
+        <div class="hud-info">
+            <p class="hud-eyebrow"><span id="hudJob">—</span><i></i><span id="hudTag">AUTO FARM</span></p>
+            <h3 id="hudItem">—</h3>
+            <div class="hud-count"><b id="hudCount">—</b><span id="hudMax"></span></div>
+        </div>
+        <div class="hud-side">
+            <div class="hud-chips" id="hudChips"></div>
+            <div class="hud-key"><kbd id="hudKeyCap">E</kbd><span id="hudKeyText">เริ่มฟาร์ม</span></div>
+        </div>
+        <div class="hud-result" id="hudResult"></div>
+        <div class="hud-pops" id="hudPops"></div>
+    </div>
+
+    <!-- เมนูเลือกไอเทม (วงที่มีหลายไอเทม) — ยึดโฟกัส · ค่าเริ่มต้นซ่อน -->
+    <div id="picker" class="picker" style="display: none;">
+        <div class="picker-panel">
+            <p class="eyebrow" id="pickJob">—</p>
+            <h2 id="pickTitle">—</h2>
+            <div class="picker-list" id="pickList"></div>
+            <p class="picker-hint" id="pickHint"></p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="hud.js"></script>
+</body>
+</html>

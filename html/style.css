@@ -1,0 +1,235 @@
+/* lnn_alljob — Ranking HUD
+ * หน่วย vh · ฟอนต์ Prompt · ไล่สีจาก Config.UI (ค่าเริ่มต้น #0871E0 → #72EAFF → #12D6FF) · เงา inset
+ * แผงเกือบใส เห็นเกมทะลุ + กรอบเรืองแสงแบบโฮโลแกรม
+ * ⚠️ backdrop-filter ใช้ไม่ได้ใน CEF ของ FiveM — ความ "กระจก" มาจาก rgba + box-shadow ล้วน */
+
+:root {
+    --c1: #0871E0;
+    --c2: #72EAFF;
+    --c3: #12D6FF;
+    --line: linear-gradient(90deg, var(--c1) 0%, var(--c2) 50%, var(--c3) 100%);   /* สีมาจาก Config.UI (ui:theme) */
+    --glass: rgba(6, 22, 44, 0.32);
+    --glass-2: rgba(8, 113, 224, 0.10);
+    --edge: rgba(114, 234, 255, 0.55);
+    --glow: 0 0 1.2vh rgba(18, 214, 255, 0.55), 0 0 3.5vh rgba(8, 113, 224, 0.35);
+    /* ⚠️ อย่าใส่ clip-path กับกล่องที่มี glow — clip-path ตัด box-shadow ทิ้งทั้งหมด */
+    --glow-soft: 0 0 0.8vh rgba(18, 214, 255, 0.35);
+    --text: #e8fbff;
+    --muted: rgba(200, 240, 255, 0.55);
+    --gold: #ffd76a;
+    --silver: #cfe6ff;
+    --bronze: #ffad72;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+
+html, body {
+    width: 100vw; height: 100vh;
+    overflow: hidden;
+    background: transparent;
+    font-family: 'Prompt', sans-serif;
+    color: var(--text);
+}
+
+/* ค่าเริ่มต้น = ซ่อน (inline style ซ้ำอีกชั้นใน index.html) */
+#app { display: none; position: fixed; inset: 0; align-items: center; justify-content: center; }
+#app.show { display: flex; animation: boot .45s cubic-bezier(.2, .9, .3, 1.2); }
+
+/* ขอบจอมืดลงนิดเดียวให้แผงเด่น — กลางจอยังใส */
+.backdrop {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 8, 20, 0.55) 100%);
+    pointer-events: none;
+}
+
+/* ============ แผงหลัก ============ */
+.panel {
+    position: relative;
+    width: 118vh; height: 74vh;
+    display: flex; flex-direction: column;
+    padding: 2.2vh 2.6vh;
+    background:
+        linear-gradient(180deg, rgba(18, 214, 255, 0.06), transparent 30%),
+        var(--glass);
+    border: 0.12vh solid var(--edge);
+    border-radius: 1.6vh;
+    box-shadow: var(--glow), inset 0 0 4vh rgba(8, 113, 224, 0.18);
+    overflow: hidden;
+}
+/* ตาราง grid จางๆ */
+.panel::before {
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background-image:
+        linear-gradient(rgba(114, 234, 255, 0.05) 0.1vh, transparent 0.1vh),
+        linear-gradient(90deg, rgba(114, 234, 255, 0.05) 0.1vh, transparent 0.1vh);
+    background-size: 4vh 4vh;
+    mask-image: radial-gradient(ellipse at 50% 40%, #000 30%, transparent 85%);
+    -webkit-mask-image: radial-gradient(ellipse at 50% 40%, #000 30%, transparent 85%);
+}
+/* เส้นสแกนวิ่งลง */
+.scan {
+    position: absolute; left: 0; right: 0; top: -20%; height: 20%;
+    background: linear-gradient(180deg, transparent, rgba(18, 214, 255, 0.07), transparent);
+    animation: scan 5s linear infinite; pointer-events: none;
+}
+.corner { position: absolute; width: 3vh; height: 3vh; border: 0.25vh solid var(--c2); filter: drop-shadow(0 0 0.6vh var(--c3)); }
+.corner.tl { top: 0.8vh; left: 0.8vh; border-right: 0; border-bottom: 0; }
+.corner.tr { top: 0.8vh; right: 0.8vh; border-left: 0; border-bottom: 0; }
+.corner.bl { bottom: 0.8vh; left: 0.8vh; border-right: 0; border-top: 0; }
+.corner.br { bottom: 0.8vh; right: 0.8vh; border-left: 0; border-top: 0; }
+
+/* ============ หัว ============ */
+.head { display: flex; align-items: center; justify-content: space-between; padding-bottom: 1.6vh; position: relative; }
+.head::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 0.15vh; background: var(--line); box-shadow: var(--glow-soft); opacity: .8; }
+.brand { display: flex; align-items: center; gap: 1.6vh; }
+.logo {
+    width: 5.6vh; height: 5.6vh; display: grid; place-items: center;
+    clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+    background: linear-gradient(48deg, var(--c1), var(--c3));
+    box-shadow: var(--glow);
+}
+.logo span { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.5vh; letter-spacing: .1vh; color: #001428; }
+h1 { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 2.7vh; letter-spacing: .5vh; text-shadow: 0 0 1vh rgba(18, 214, 255, .8); }
+.sub { font-family: 'Orbitron', sans-serif; font-size: 1.05vh; letter-spacing: .45vh; color: var(--muted); margin-top: .3vh; }
+
+.glitch { position: relative; }
+.glitch::before, .glitch::after { content: attr(data-text); position: absolute; inset: 0; opacity: .7; }
+.glitch::before { color: var(--c3); animation: glitch 3.2s infinite steps(1); clip-path: inset(0 0 60% 0); }
+.glitch::after { color: #ff3df0; animation: glitch 3.2s infinite steps(1) reverse; clip-path: inset(55% 0 0 0); }
+
+.status { display: flex; align-items: center; gap: 1.6vh; font-family: 'Orbitron', sans-serif; font-size: 1.3vh; }
+.live { display: flex; align-items: center; gap: .7vh; color: #7dffb2; letter-spacing: .3vh; text-shadow: 0 0 .8vh #2bff8a; }
+.live i { width: .9vh; height: .9vh; border-radius: 50%; background: #2bff8a; box-shadow: 0 0 1vh #2bff8a; animation: pulse 1.2s infinite; }
+.clock { color: var(--c2); letter-spacing: .25vh; min-width: 10vh; text-align: right; }
+.x {
+    width: 3.6vh; height: 3.6vh; border-radius: 50%; cursor: pointer;
+    background: rgba(8, 113, 224, .12); color: var(--c2); font-size: 1.5vh;
+    border: .12vh solid var(--edge); box-shadow: var(--glow-soft);
+    transition: .2s;
+}
+.x:hover { background: rgba(224, 8, 8, .35); color: #fff; border-color: #ff7272; box-shadow: 0 0 1.2vh #ff1212; }
+
+/* ============ เนื้อ ============ */
+.body { flex: 1; display: flex; gap: 2vh; padding: 1.8vh 0; min-height: 0; }
+
+.tabs { width: 24vh; display: flex; flex-direction: column; gap: 1vh; }
+.tab {
+    position: relative; display: flex; align-items: center; gap: 1.2vh;
+    height: 5.4vh; padding: 0 1.4vh; cursor: pointer;
+    background: var(--glass-2);
+    border: .12vh solid rgba(114, 234, 255, .2);
+    border-radius: 50vh;
+    box-shadow: inset 0 0 .8vh rgba(0, 0, 0, .5);
+    transition: .2s;
+}
+.tab:hover { border-color: rgba(114, 234, 255, .6); }
+.tab .no { font-family: 'Orbitron', sans-serif; font-size: 1.2vh; color: var(--muted); width: 2.6vh; }
+.tab .name { font-size: 1.6vh; font-weight: 500; }
+.tab.active {
+    background: linear-gradient(90deg, rgba(8, 113, 224, .55), rgba(18, 214, 255, .15));
+    border-color: var(--c2); box-shadow: var(--glow), inset 0 0 1vh rgba(18, 214, 255, .3);
+}
+.tab.active .no { color: var(--c2); text-shadow: 0 0 .6vh var(--c3); }
+.tab.active::after { content: ''; position: absolute; right: 1.4vh; width: .8vh; height: .8vh; border-radius: 50%; background: var(--c2); box-shadow: 0 0 .8vh var(--c3); }
+
+.board { position: relative; flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.board-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 1.4vh; }
+.eyebrow { font-family: 'Orbitron', sans-serif; font-size: 1vh; letter-spacing: .5vh; color: var(--muted); }
+h2 { font-size: 2.6vh; font-weight: 600; text-shadow: 0 0 1vh rgba(18, 214, 255, .5); }
+.meta { display: flex; gap: 1.4vh; align-items: center; font-family: 'Orbitron', sans-serif; font-size: 1.1vh; letter-spacing: .25vh; color: var(--muted); }
+.meta b { color: var(--c2); font-size: 1.5vh; }
+.sync { padding: .4vh 1vh; border: .1vh solid rgba(114, 234, 255, .4); border-radius: 50vh; transition: .2s; }
+.sync.flash { color: #001428; background: var(--c2); box-shadow: var(--glow); }
+
+/* ============ โพเดียม 3 อันดับแรก ============ */
+.podium { display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: 1.4vh; align-items: end; margin-bottom: 1.4vh; }
+.pod {
+    --tone: var(--c2);
+    --tone-a: rgba(114, 234, 255, .55);
+    --tone-b: rgba(114, 234, 255, .14);
+    position: relative; text-align: center; padding: 1.6vh 1vh 1.4vh;
+    background: linear-gradient(180deg, rgba(255, 255, 255, .04), rgba(8, 113, 224, .08));
+    border: .12vh solid var(--tone);
+    border-radius: 1.2vh;
+    box-shadow: 0 0 1.2vh var(--tone-a), inset 0 0 2vh var(--tone-b);
+}
+.pod.r1 { --tone: var(--gold); --tone-a: rgba(255, 215, 106, .6); --tone-b: rgba(255, 215, 106, .16); padding-top: 2.6vh; }
+.pod.r2 { --tone: var(--silver); --tone-a: rgba(207, 230, 255, .5); --tone-b: rgba(207, 230, 255, .12); }
+.pod.r3 { --tone: var(--bronze); --tone-a: rgba(255, 173, 114, .5); --tone-b: rgba(255, 173, 114, .12); }
+.pod .medal {
+    font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 3.4vh;
+    color: var(--tone); text-shadow: 0 0 1.2vh var(--tone);
+}
+.pod.r1 .medal { font-size: 4.4vh; }
+.pod .who { font-size: 1.7vh; font-weight: 500; margin-top: .4vh; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pod .pts { font-family: 'Orbitron', sans-serif; font-size: 1.5vh; color: var(--c2); margin-top: .4vh; letter-spacing: .15vh; }
+.pod.mine { outline: .2vh dashed var(--c3); outline-offset: -.6vh; }
+.pod.vacant { opacity: .35; }
+
+/* ============ รายการ 4..N ============ */
+.list { list-style: none; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: .7vh; padding: 1vh .6vh 0 0; }   /* padding-top = ที่ให้ป้าย YOU ไม่โดน overflow ตัด */
+.list::-webkit-scrollbar { width: .4vh; }
+.list::-webkit-scrollbar-thumb { background: var(--c1); border-radius: 1vh; box-shadow: var(--glow-soft); }
+.row {
+    position: relative; display: grid; grid-template-columns: 6vh 1fr 20vh 9vh; align-items: center;
+    height: 4.6vh; padding: 0 1.6vh;
+    background: linear-gradient(90deg, rgba(8, 113, 224, .16), rgba(8, 113, 224, .03));
+    border: .1vh solid rgba(114, 234, 255, .18);
+    border-radius: .8vh;
+    transition: transform .45s cubic-bezier(.2, .8, .2, 1), border-color .3s;
+    animation: rowIn .35s both;
+}
+.row .rk { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 1.6vh; color: var(--c2); }
+.row .nm { font-size: 1.6vh; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .bar { height: .5vh; border-radius: 1vh; background: rgba(114, 234, 255, .12); overflow: hidden; margin-right: 1.6vh; }
+.row .bar i { display: block; height: 100%; background: var(--line); box-shadow: var(--glow-soft); transition: width .6s; }
+.row .sc { font-family: 'Orbitron', sans-serif; font-size: 1.5vh; text-align: right; letter-spacing: .1vh; }
+.row.mine { border-color: var(--c3); box-shadow: var(--glow-soft), inset 0 0 1.4vh rgba(18, 214, 255, .25); }
+.row.mine::before { content: 'YOU'; position: absolute; left: -.1vh; top: -.9vh; font-family: 'Orbitron', sans-serif; font-size: .9vh; padding: .1vh .6vh; border-radius: .4vh; background: var(--c3); color: #001428; }
+.row.up { border-color: #2bff8a; }
+.row.up .rk::after { content: ' ▲'; color: #2bff8a; font-size: 1.1vh; text-shadow: 0 0 .6vh #2bff8a; }
+
+.empty, .loading { position: absolute; inset: 9vh 0 0 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2vh; color: var(--muted); font-family: 'Orbitron', sans-serif; font-size: 1.3vh; letter-spacing: .3vh; }
+.ring { width: 8vh; height: 8vh; border-radius: 50%; border: .2vh solid rgba(114, 234, 255, .2); border-top-color: var(--c2); box-shadow: var(--glow-soft); animation: spin 2.4s linear infinite; }
+.loading { flex-direction: row; gap: 1vh; }
+.loading span { width: 1vh; height: 1vh; border-radius: 50%; background: var(--c2); box-shadow: var(--glow); animation: pulse .9s infinite; }
+.loading span:nth-child(2) { animation-delay: .15s; }
+.loading span:nth-child(3) { animation-delay: .3s; }
+
+/* ============ แถบของเรา ============ */
+.me {
+    position: relative; display: flex; align-items: center; gap: 2.6vh;
+    height: 8vh; padding: 0 2vh;
+    background: linear-gradient(90deg, rgba(8, 113, 224, .35), rgba(18, 214, 255, .06) 60%, transparent);
+    border: .12vh solid var(--edge); border-radius: 50vh;
+    box-shadow: var(--glow), inset 0 0 1.6vh rgba(0, 0, 0, .45);
+}
+.me-tag {
+    font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.4vh; letter-spacing: .3vh;
+    height: 5vh; width: 9vh; display: grid; place-items: center; border-radius: 50vh;
+    background: linear-gradient(48deg, var(--c1), var(--c3)); color: #001428; box-shadow: var(--glow);
+}
+.me-cell p { font-family: 'Orbitron', sans-serif; font-size: 1vh; letter-spacing: .35vh; color: var(--muted); }
+.me-cell strong { font-family: 'Orbitron', sans-serif; font-size: 2.6vh; font-weight: 700; text-shadow: 0 0 1vh rgba(18, 214, 255, .6); }
+.me-cell.wide { flex: 1; display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; column-gap: 1.4vh; align-items: center; }
+.me-cell.wide p { grid-column: 1 / -1; }
+.meter { height: .8vh; border-radius: 1vh; background: rgba(114, 234, 255, .12); overflow: hidden; margin-top: .6vh; }
+.meter i { display: block; height: 100%; width: 0; background: var(--line); box-shadow: var(--glow); transition: width .8s; }
+#mePct { font-family: 'Orbitron', sans-serif; font-size: 1.4vh; color: var(--c2); margin-top: .6vh; }
+.hint { font-size: 1.2vh; color: var(--muted); display: flex; align-items: center; gap: .6vh; }
+kbd { font-family: 'Orbitron', sans-serif; font-size: 1vh; padding: .3vh .7vh; border-radius: .5vh; border: .1vh solid var(--edge); color: var(--c2); box-shadow: var(--glow-soft); }
+
+.bump { animation: bump .5s; }
+
+@keyframes boot { from { opacity: 0; transform: scale(.94) translateY(2vh); filter: brightness(2); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes scan { to { top: 120%; } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes rowIn { from { opacity: 0; transform: translateX(-1.5vh); } }
+@keyframes bump { 40% { transform: scale(1.15); color: #fff; text-shadow: 0 0 1.6vh var(--c3); } }
+@keyframes glitch {
+    0%, 92%, 100% { transform: none; }
+    93% { transform: translate(.3vh, -.1vh); }
+    95% { transform: translate(-.3vh, .1vh); }
+    97% { transform: translate(.15vh, 0); }
+}

@@ -1,0 +1,161 @@
+/* HUD ตอนฟาร์ม — วงแหวน + ชื่อ + จำนวน + ปุ่ม ในธีมเดียวกับแผง Ranking
+ * ใช้โทเคนสีจาก style.css · ⚠️ ห้ามใส่ clip-path กับกล่องที่มี glow (ตัด box-shadow ทิ้ง) */
+
+.hud {
+    position: fixed; left: 50%; bottom: 2vh;
+    transform: translateX(-50%);
+    display: none; align-items: center; gap: 1.6vh;
+    min-width: 66vh; height: 10vh; padding: 0 2.4vh 0 0;
+    background: linear-gradient(90deg, rgba(8, 113, 224, .30), rgba(6, 22, 44, .28) 45%, rgba(6, 22, 44, .18));
+    border: .12vh solid var(--edge); border-radius: 50vh;
+    box-shadow: var(--glow), inset 0 0 1.6vh rgba(0, 0, 0, .45);
+    pointer-events: none;
+}
+.hud.show { display: flex; animation: hudIn .3s cubic-bezier(.2, .9, .3, 1.2); }
+/* เส้นแสงวิ่งตามขอบล่าง */
+.hud::after {
+    content: ''; position: absolute; left: 12vh; right: 3vh; bottom: -.1vh; height: .15vh;
+    background: var(--line); box-shadow: var(--glow-soft); opacity: .7;
+}
+
+/* ---------- วงแหวน ---------- */
+.hud-ring { position: relative; width: 10vh; height: 10vh; flex: none; }
+.hud-ring::before {
+    content: ''; position: absolute; inset: 1.1vh; border-radius: 50%;
+    background: radial-gradient(circle, rgba(18, 214, 255, .22), rgba(6, 22, 44, .55) 70%);
+    border: .12vh solid rgba(114, 234, 255, .35);
+    box-shadow: inset 0 0 1vh rgba(0, 0, 0, .6);
+}
+.hud-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+.hud-ring .track { fill: none; stroke: rgba(114, 234, 255, .14); stroke-width: 6; }
+.hud-ring .ticks { fill: none; stroke: rgba(114, 234, 255, .35); stroke-width: 1.2; stroke-dasharray: 1 6; }
+.hud-ring .fill {
+    fill: none; stroke: url(#hudGrad); stroke-width: 6; stroke-linecap: round;
+    stroke-dasharray: 100; stroke-dashoffset: 100;
+    filter: drop-shadow(0 0 .6vh #12D6FF);
+}
+.hud-icon { position: absolute; inset: 0; display: grid; place-items: center; }
+.hud-icon svg { width: 3.6vh; height: 3.6vh; fill: none; stroke: var(--c2); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 .5vh var(--c3)); transform: none; position: static; }
+.hud-time {
+    position: absolute; left: 50%; bottom: -.6vh; transform: translateX(-50%);
+    font-family: 'Orbitron', sans-serif; font-size: 1.05vh; letter-spacing: .1vh;
+    padding: .15vh .7vh; border-radius: 50vh;
+    background: var(--c3); color: #001428; box-shadow: var(--glow-soft);
+    display: none;
+}
+
+/* ---------- ข้อมูล ---------- */
+.hud-info { flex: 1; min-width: 0; }
+.hud-eyebrow { display: flex; align-items: center; gap: .8vh; font-family: 'Orbitron', sans-serif; font-size: 1vh; letter-spacing: .35vh; color: var(--muted); }
+.hud-eyebrow #hudJob { font-family: 'Prompt', sans-serif; letter-spacing: .1vh; font-size: 1.15vh; color: var(--c2); }
+.hud-eyebrow i { width: .5vh; height: .5vh; border-radius: 50%; background: var(--c3); box-shadow: 0 0 .5vh var(--c3); }
+.hud h3 { font-size: 1.9vh; font-weight: 600; line-height: 1.25; text-shadow: 0 0 1vh rgba(18, 214, 255, .45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.hud-count { display: flex; align-items: baseline; gap: .6vh; font-family: 'Orbitron', sans-serif; margin-top: .2vh; }
+.hud-count b { font-size: 2.3vh; font-weight: 700; color: #fff; text-shadow: 0 0 1vh rgba(18, 214, 255, .7); }
+.hud-count span { font-size: 1.3vh; color: var(--muted); }
+.hud-count b.bump { animation: bump .5s; }
+
+/* ---------- ขวา: ชิป + ปุ่ม ---------- */
+.hud-side { display: flex; flex-direction: column; align-items: flex-end; gap: .8vh; flex: none; }
+.hud-chips { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .6vh; max-width: 36vh; }
+.chip {
+    display: inline-flex; align-items: center; gap: .5vh;
+    height: 2.3vh; padding: 0 .9vh; border-radius: 50vh;
+    font-size: 1.15vh; white-space: nowrap;
+    background: rgba(8, 113, 224, .18); border: .1vh solid rgba(114, 234, 255, .3);
+}
+.chip b { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 1.05vh; color: var(--c2); }
+.chip.get b { color: #7dffb2; }
+.chip.pts { border-color: rgba(255, 215, 106, .45); }
+.chip.pts b { color: var(--gold); }
+.chip.bonus { border-style: dashed; border-color: rgba(255, 215, 106, .45); color: var(--muted); }
+.chip.rank { background: linear-gradient(90deg, rgba(8, 113, 224, .55), rgba(18, 214, 255, .2)); border-color: var(--c2); box-shadow: var(--glow-soft); }
+.chip.rank b { color: #fff; }
+.chip.rank.up { animation: rankUp .8s; }
+
+/* ---------- ของที่ได้ลอยขึ้นจากวงแหวน ---------- */
+.hud-pops { position: absolute; left: 5vh; bottom: 100%; width: 0; height: 0; }
+.pop {
+    position: absolute; left: 0; bottom: 0; transform: translateX(-50%);
+    white-space: nowrap; font-family: 'Orbitron', 'Prompt', sans-serif; font-size: 1.5vh; font-weight: 700;
+    color: #7dffb2; text-shadow: 0 0 1vh #2bff8a;
+    animation: popUp 1.4s ease-out forwards;
+}
+.pop.gold { color: var(--gold); text-shadow: 0 0 1.2vh #ffb300; font-size: 1.7vh; }
+
+/* ---------- ปุ่ม ---------- */
+.hud-key { display: flex; align-items: center; gap: .9vh; font-size: 1.35vh; }
+.hud-key kbd {
+    display: grid; place-items: center; width: 3.4vh; height: 3.4vh; padding: 0;
+    font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.4vh;
+    border-radius: 50%; border: 0; color: #001428;
+    background: var(--line); box-shadow: var(--glow), inset 0 0 .4vh rgba(255, 255, 255, .6);
+    animation: keyPulse 1.8s infinite;
+}
+
+/* ---------- ผลลัพธ์ (ลอยเหนือแถบ) ---------- */
+.hud-result {
+    position: absolute; left: 50%; bottom: calc(100% + 1vh); transform: translate(-50%, .8vh);
+    padding: .7vh 1.8vh; border-radius: 50vh; white-space: nowrap;
+    font-size: 1.45vh; font-weight: 500; opacity: 0; transition: opacity .25s, transform .25s;
+    background: rgba(6, 22, 44, .55); border: .12vh solid var(--edge); box-shadow: var(--glow-soft);
+}
+.hud-result.on { opacity: 1; transform: translate(-50%, 0); }
+.hud-result.ok { border-color: #2bff8a; color: #c9ffe0; box-shadow: 0 0 1.2vh rgba(43, 255, 138, .5); }
+.hud-result.fail { border-color: #ff7272; color: #ffd2d2; box-shadow: 0 0 1.2vh rgba(255, 18, 18, .5); }
+.hud-result .rk { margin-left: .8vh; font-family: 'Orbitron', sans-serif; font-size: 1.2vh; color: var(--gold); }
+
+/* ---------- สถานะ ---------- */
+.hud.working { border-color: var(--c3); }
+.hud.working .hud-time { display: block; }
+.hud.working .hud-icon svg { animation: workSpin 1.6s linear infinite; }
+.hud.working .hud-key kbd { background: linear-gradient(90deg, #e00808, #ff7272); box-shadow: 0 0 1.2vh #ff1212; animation: none; }
+.hud.flash-ok { animation: flashOk .6s; }
+.hud.flash-fail { animation: shake .35s; }
+
+@keyframes hudIn { from { opacity: 0; transform: translate(-50%, 2vh); } }
+@keyframes keyPulse { 50% { box-shadow: 0 0 2vh #12D6FF, inset 0 0 .4vh rgba(255, 255, 255, .6); } }
+@keyframes workSpin { to { transform: rotate(360deg); } }
+@keyframes popUp { 0% { opacity: 0; transform: translate(-50%, 0) scale(.8); } 15% { opacity: 1; transform: translate(-50%, -1.2vh) scale(1.1); } 100% { opacity: 0; transform: translate(-50%, -6vh) scale(1); } }
+@keyframes rankUp { 30% { box-shadow: 0 0 2vh #12D6FF; transform: scale(1.12); } }
+@keyframes flashOk { 30% { box-shadow: 0 0 3vh rgba(43, 255, 138, .8), inset 0 0 2vh rgba(43, 255, 138, .35); border-color: #2bff8a; } }
+@keyframes shake { 25% { transform: translateX(calc(-50% - .8vh)); } 75% { transform: translateX(calc(-50% + .8vh)); } }
+
+/* ---------- ชิปเพิ่ม ---------- */
+.chip.vip { background: linear-gradient(90deg, rgba(255, 196, 0, .45), rgba(255, 215, 106, .15)); border-color: var(--gold); box-shadow: 0 0 .8vh rgba(255, 196, 0, .5); }
+.chip.vip b { color: #fff3c4; }
+.chip.need { border-color: rgba(255, 173, 114, .55); }
+.chip.need b { color: var(--bronze); font-family: 'Prompt', sans-serif; font-weight: 600; }
+.chip.max b { color: var(--muted); font-family: 'Prompt', sans-serif; font-weight: 500; }
+
+/* ---------- เมนูเลือกไอเทม (ยึดโฟกัส) ---------- */
+.picker { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; }
+.picker.show { display: flex; animation: boot .35s cubic-bezier(.2, .9, .3, 1.2); }
+.picker::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 35%, rgba(0, 8, 20, .55) 100%); }
+.picker-panel {
+    position: relative; width: 52vh; padding: 2.4vh 2.6vh 2vh;
+    background: linear-gradient(180deg, rgba(18, 214, 255, .06), transparent 35%), var(--glass);
+    border: .12vh solid var(--edge); border-radius: 1.6vh;
+    box-shadow: var(--glow), inset 0 0 4vh rgba(8, 113, 224, .18);
+}
+.picker-panel h2 { margin-bottom: 1.6vh; }
+.picker-list { display: flex; flex-direction: column; gap: 1vh; }
+.pick {
+    display: flex; align-items: center; gap: 1.4vh; padding: 1.2vh 1.4vh; cursor: pointer;
+    background: var(--glass-2); border: .12vh solid rgba(114, 234, 255, .2); border-radius: 1.2vh;
+    box-shadow: inset 0 0 .8vh rgba(0, 0, 0, .5); transition: .18s;
+}
+.pick.active { background: linear-gradient(90deg, rgba(8, 113, 224, .55), rgba(18, 214, 255, .12)); border-color: var(--c2); box-shadow: var(--glow), inset 0 0 1vh rgba(18, 214, 255, .3); transform: translateX(.6vh); }
+.pick-icon {
+    width: 6vh; height: 6vh; flex: none; border-radius: 50%; display: grid; place-items: center;
+    background: radial-gradient(circle, rgba(18, 214, 255, .25), rgba(6, 22, 44, .6) 70%);
+    border: .12vh solid rgba(114, 234, 255, .4);
+}
+.pick-icon::before { content: ''; width: 2.6vh; height: 2.6vh; border: .25vh solid var(--c2); transform: rotate(45deg); border-radius: .4vh; box-shadow: 0 0 .8vh var(--c3); }
+.pick-icon.has-img::before { display: none; }   /* ไม่ใช้ :has() — CEF รุ่นเก่าไม่รองรับ */
+.pick-icon img { width: 4.4vh; height: 4.4vh; object-fit: contain; filter: drop-shadow(0 0 .6vh rgba(18, 214, 255, .6)); }
+.pick-name { font-size: 1.9vh; font-weight: 600; text-shadow: 0 0 1vh rgba(18, 214, 255, .45); }
+.pick-meta { display: flex; flex-wrap: wrap; gap: .6vh; margin-top: .5vh; }
+.picker-hint { margin-top: 1.6vh; text-align: center; font-size: 1.2vh; color: var(--muted); }
+.picker-panel .eyebrow { font-family: 'Prompt', sans-serif; letter-spacing: .1vh; font-size: 1.35vh; color: var(--c2); }   /* ชื่องานเป็นภาษาไทย — ไม่ใช้ระยะห่างตัวอักษรแบบหัวข้ออังกฤษ */
